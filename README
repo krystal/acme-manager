@@ -1,0 +1,5 @@
+This tool does management of LetsEncrypt certificates.
+
+* Generate an RSA key data/config/private.key
+* Run with procodile
+* Run bin/renew.rb from time to time

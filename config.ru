@@ -1,4 +1,3 @@
+$:.unshift File.join(File.dirname(__FILE__), 'lib')
 require './lib/acme_manager'
-require './lib/acme_manager/server'
-
 run AcmeManager::Server.new
