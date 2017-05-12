@@ -1,5 +1,2 @@
-data/certificates/**/*
-data/assembled_certificates/*
-data/config/*
-data/challenges/*
-!**/.keep
+#data/**
+config.rb

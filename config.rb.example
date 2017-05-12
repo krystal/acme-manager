@@ -1,0 +1,2 @@
+AcmeManager.endpoint = 'https://acme-staging.api.letsencrypt.org/'
+AcmeManager.email_address = 'domains@example.com'

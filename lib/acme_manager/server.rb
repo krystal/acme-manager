@@ -12,7 +12,9 @@ module AcmeManager
         [200, {'Content-Type' => 'text/plain'}, [response.to_json]]
       when /\A\/.well-known\/acme-challenge\/(.+)/
         token = $1
-        [200, {'Content-Type' => 'text/plain'}, [File.read(File.join('data', 'challenges', token))]]
+        [200, {'Content-Type' => 'text/plain'}, [File.read(File.join(AcmeManager.data_path, 'challenges', token))]]
+      else
+        [404, {}, ["Not found"]]
       end
     end
   end

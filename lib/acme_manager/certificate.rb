@@ -21,8 +21,8 @@ module AcmeManager
     end
 
     def delete!
-      FileUtils.rm_rf(File.join('data', 'certificates', domain))
-      FileUtils.rm_rf(File.join('data', 'assembled_certificates', domain + '.pem'))
+      FileUtils.rm_rf(File.join(AcmeManager.data_path, 'certificates', domain))
+      FileUtils.rm_rf(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'))
     end
 
     def renew
@@ -41,7 +41,7 @@ module AcmeManager
       authorization = AcmeManager.client.authorize(:domain => domain)
       if authorization.status == 'pending'
         challenge = authorization.http01
-        File.write(File.join('data', 'challenges', challenge.token), challenge.file_content)
+        File.write(File.join(AcmeManager.data_path, 'challenges', challenge.token), challenge.file_content)
         challenge.request_verification
 
         checks = 0
@@ -60,13 +60,13 @@ module AcmeManager
 
       csr = Acme::Client::CertificateRequest.new(:names => [domain])
       certificate = AcmeManager.client.new_certificate(csr)
-      FileUtils.mkdir_p(File.join('data', 'certificates', domain))
-      File.write(File.join('data', 'certificates', domain, 'key.pem'), certificate.request.private_key.to_pem)
-      File.write(File.join('data', 'certificates', domain, 'cert.pem'), certificate.to_pem)
-      File.write(File.join('data', 'certificates', domain, 'chain.pem'), certificate.chain_to_pem)
+      FileUtils.mkdir_p(File.join(AcmeManager.data_path, 'certificates', domain))
+      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'key.pem'), certificate.request.private_key.to_pem)
+      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'cert.pem'), certificate.to_pem)
+      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'chain.pem'), certificate.chain_to_pem)
 
       assembled = certificate.to_pem + certificate.chain_to_pem + certificate.request.private_key.to_pem
-      File.write(File.join('data', 'assembled_certificates', domain + '.pem'), assembled)
+      File.write(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'), assembled)
       :issued
     rescue Acme::Client::Error => e
       tries -= 1
