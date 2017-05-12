@@ -1,3 +1,6 @@
 AcmeManager.endpoint = 'https://acme-staging.api.letsencrypt.org/'
 AcmeManager.email_address = 'domains@example.com'
 AcmeManager.api_key = 'xxxxxxxxxxxxxx'
+AcmeManager.post_commands = [
+  'sudo /etc/init.d/haproxy reload'
+]

@@ -9,7 +9,12 @@ module AcmeManager
           [200, {'Content-Type' => 'text/plain'}, [AcmeManager.certificates.to_json]]
         when /\A\/~acmemanager\/issue\/(.+)/
           domain = $1
-          response = {:result => Certificate.issue(domain)}
+          result = Certificate.issue(domain)
+          if result == :issued
+            pid = spawn(AcmeManager.post_commands.join(';'))
+            Process.detach(pid)
+          end
+          response = {:result => result}
           [200, {'Content-Type' => 'text/plain'}, [response.to_json]]
         when /\A\/.well-known\/acme-challenge\/(.+)/
           token = $1

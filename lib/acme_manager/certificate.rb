@@ -29,7 +29,9 @@ module AcmeManager
       status = Certificate.issue(@name)
       if status == :failed && expired?
         delete!
+        return :deleted
       end
+      status
     end
 
     def self.issue(domain)

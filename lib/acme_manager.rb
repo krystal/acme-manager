@@ -25,10 +25,12 @@ module AcmeManager
   end
 
   def self.renew_all
+    new_issues = false
     self.certificates_due_for_renewal.each do |certificate|
-      certificate.renew
+      status = certificate.renew
+      new_issues = true if status == :issued
     end
-    true
+    new_issues
   end
 
   def self.[](domain)
@@ -87,6 +89,14 @@ module AcmeManager
 
   def self.api_key
     @api_key || raise("API Key not set")
+  end
+
+  def self.post_commands=(post_commands)
+    @post_commands = post_commands
+  end
+
+  def self.post_commands
+    @post_commands || []
   end
 
 end
