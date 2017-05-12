@@ -3,11 +3,15 @@ require 'json'
 module AcmeManager
   class Server
     def call(env)
-      if env['HTTP_X_API_KEY'] == AcmeManager.api_key
-        case env['REQUEST_PATH']
-        when '/~acmemanager/list'
+      case env['REQUEST_PATH']
+      when '/~acmemanager/list'
+        if env['HTTP_X_API_KEY'] == AcmeManager.api_key
           [200, {'Content-Type' => 'text/plain'}, [AcmeManager.certificates.to_json]]
-        when /\A\/~acmemanager\/issue\/(.+)/
+        else
+          [403, {}, ["API key required"]]
+        end
+      when /\A\/~acmemanager\/issue\/(.+)/
+        if env['HTTP_X_API_KEY'] == AcmeManager.api_key
           domain = $1
           result = Certificate.issue(domain)
           if result == :issued
@@ -16,15 +20,16 @@ module AcmeManager
           end
           response = {:result => result}
           [200, {'Content-Type' => 'text/plain'}, [response.to_json]]
-        when /\A\/.well-known\/acme-challenge\/(.+)/
-          token = $1
-          [200, {'Content-Type' => 'text/plain'}, [File.read(File.join(AcmeManager.data_path, 'challenges', token))]]
         else
-          [404, {}, ["Not found"]]
+          [403, {}, ["API key required"]]
         end
+      when /\A\/.well-known\/acme-challenge\/(.+)/
+        token = $1
+        [200, {'Content-Type' => 'text/plain'}, [File.read(File.join(AcmeManager.data_path, 'challenges', token))]]
       else
-        [403, {}, ["API key required"]]
+        [404, {}, ["Not found"]]
       end
     end
+
   end
 end
