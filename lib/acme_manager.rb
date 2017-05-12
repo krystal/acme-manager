@@ -81,6 +81,14 @@ module AcmeManager
     @email_address || raise("Email Address not set")
   end
 
+  def self.api_key=(api_key)
+    @api_key = api_key
+  end
+
+  def self.api_key
+    @api_key || raise("API Key not set")
+  end
+
 end
 
 config_file = File.join(File.dirname(__FILE__), '..', 'config.rb')
