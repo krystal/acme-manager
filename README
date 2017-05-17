@@ -1,5 +1,7 @@
 This tool does management of LetsEncrypt certificates.
 
+* Run bundle (or bundle --deployment for production)
+* Copy config.rb.example to config.rb and configure as needed
 * Make bin/setup.rb to generate master keys, create directories, and accept the LetsEncrypt TOS
 * Run with procodile
 * Run bin/renew.rb from time to time
