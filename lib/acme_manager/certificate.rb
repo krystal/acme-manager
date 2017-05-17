@@ -29,7 +29,7 @@ module AcmeManager
       status = Certificate.issue(@name)
       if status == :failed && expired?
         delete!
-        return :deleted
+        return {:result => :deleted}
       end
       status
     end
@@ -37,9 +37,8 @@ module AcmeManager
     def self.issue(domain)
       tries ||= 3
       if AcmeManager[domain] and !AcmeManager[domain].due_for_renewal?
-        return :not_due
+        return {:result => :not_due}
       end
-
       authorization = AcmeManager.client.authorize(:domain => domain)
       if authorization.status == 'pending'
         challenge = authorization.http01
@@ -51,12 +50,17 @@ module AcmeManager
         while challenge.verify_status == 'pending'
           checks += 1
           if checks > 5
-            return :timed_out
+            return {:result => :failed, :reason => {:type => :timeout, :detail => "Timeout waiting for verify result"}}
           end
           sleep 1
         end
-        unless challenge.verify_status == 'valid'
-          return :failed
+        case challenge.verify_status
+        when 'valid'
+          # Carry on
+        when 'invalid'
+          return {:result => :failed, :reason => challenge.authorization.http01.error}
+        else
+          return {:result => :failed, :reason => {:type => :unexpected_status, :detail => challenge.verify_status}}
         end
       end
 
@@ -69,15 +73,16 @@ module AcmeManager
 
       assembled = certificate.to_pem + certificate.chain_to_pem + certificate.request.private_key.to_pem
       File.write(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'), assembled)
-      :issued
+      return {:result => :issued}
     rescue Acme::Client::Error => e
       tries -= 1
       if e.is_a?(Acme::Client::Error::BadNonce) && tries > 0
         retry
       else
-        :failed
+        return {:result => :failed, :reason => {:type => :external, :detail => "#{e.class}: #{e.message}"}}
       end
+    rescue => e
+      return {:result => :failed, :reason => {:type => :internal, :detail => "#{e.class}: #{e.message}"}}
     end
-
   end
 end

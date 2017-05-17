@@ -28,7 +28,7 @@ module AcmeManager
     new_issues = false
     self.certificates_due_for_renewal.each do |certificate|
       status = certificate.renew
-      new_issues = true if status == :issued
+      new_issues = true if status[:result] == :issued
     end
     new_issues
   end
