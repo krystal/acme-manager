@@ -15,8 +15,10 @@ module AcmeManager
           domain = $1
           result = Certificate.issue(domain)
           if result[:result] == :issued
-            pid = spawn(AcmeManager.post_commands.join(';'))
-            Process.detach(pid)
+            unless AcmeManager.post_commands.empty?
+              pid = spawn(AcmeManager.post_commands.join(';'))
+              Process.detach(pid)
+            end
           end
           [200, {'Content-Type' => 'text/plain'}, [result.to_json]]
         else
@@ -33,7 +35,7 @@ module AcmeManager
         [404, {}, ["Not found"]]
       end
     rescue => e
-      [500, {}, [{:result => :failed, :reason => {:type => :internal, :detail => "#{e.class}: #{e.message}"}}.to_json]]
+      [500, {}, [{:result => :failed, :reason => {:type => :internal, :detail => "#{e.class}: #{e.message}, #{e.backtrace.join}"}}.to_json]]
     end
 
   end
