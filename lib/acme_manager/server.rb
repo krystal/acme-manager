@@ -15,10 +15,7 @@ module AcmeManager
           domain = $1
           result = Certificate.issue(domain)
           if result[:result] == :issued
-            unless AcmeManager.post_commands.empty?
-              pid = spawn(AcmeManager.post_commands.join(';'))
-              Process.detach(pid)
-            end
+            AcmeManager.run_post_commands
           end
           [200, {'Content-Type' => 'text/plain'}, [result.to_json]]
         else

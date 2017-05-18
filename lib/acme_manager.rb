@@ -99,6 +99,13 @@ module AcmeManager
     @post_commands || []
   end
 
+  def self.run_post_commands
+    unless AcmeManager.post_commands.empty?
+      pid = spawn(AcmeManager.post_commands.join(';'))
+      Process.detach(pid)
+    end
+  end
+
 end
 
 config_file = File.join(File.dirname(__FILE__), '..', 'config.rb')
