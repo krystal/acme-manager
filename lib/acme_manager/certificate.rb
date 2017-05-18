@@ -17,7 +17,7 @@ module AcmeManager
     end
 
     def to_json(options={})
-      {:name => @name, :not_after => @certificate.not_after}.to_json
+      {:name => @name, :not_after => @certificate.not_after.iso8601}.to_json
     end
 
     def delete!
