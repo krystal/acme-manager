@@ -2,7 +2,7 @@ require 'acme-client'
 require 'fileutils'
 require 'acme_manager/certificate'
 require 'acme_manager/server'
-Faraday.default_adapter = :httpclient
+
 module AcmeManager
 
   def self.client
