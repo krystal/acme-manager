@@ -8,7 +8,7 @@ module AcmeManager
   def self.client
     @client ||= begin
       private_key = OpenSSL::PKey::RSA.new(File.read(File.join(data_path, 'private.key')))
-      client = Acme::Client.new(private_key: private_key, endpoint: self.endpoint, connection_options: { request: { open_timeout: 5, timeout: 5 } })
+      client = Acme::Client.new(private_key: private_key, directory: self.directory, connection_options: { request: { open_timeout: 5, timeout: 5 } })
     end
   end
 
@@ -57,8 +57,7 @@ module AcmeManager
   end
 
   def self.accept_tos
-    registration = client.register(contact: 'mailto:' + self.email_address)
-    registration.agree_terms
+    client.new_account(contact: 'mailto:' + self.email_address, terms_of_service_agreed: true)
   rescue Acme::Client::Error::Malformed => e
     raise unless e.message =~ /Registration key is already in use/
   end
@@ -67,12 +66,12 @@ module AcmeManager
     File.expand_path(File.join(File.dirname(__FILE__), '..', 'data'))
   end
 
-  def self.endpoint=(endpoint)
-    @endpoint = endpoint
+  def self.directory=(directory)
+    @directory = directory
   end
 
-  def self.endpoint
-    @endpoint || raise("Endpoint URL not set")
+  def self.directory
+    @directory || raise("Directory URL not set")
   end
 
   def self.email_address=(email_address)

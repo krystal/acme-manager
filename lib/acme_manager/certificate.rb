@@ -37,43 +37,44 @@ module AcmeManager
     def self.issue(domain)
       tries ||= 3
       if AcmeManager[domain] and !AcmeManager[domain].due_for_renewal?
-        return {:result => :not_due}
-      end
-      authorization = AcmeManager.client.authorize(:domain => domain)
-      if authorization.status == 'pending'
-        challenge = authorization.http01
-        File.write(File.join(AcmeManager.data_path, 'challenges', challenge.token), challenge.file_content)
-        challenge.request_verification
-
-        checks = 0
-        sleep 1
-        while challenge.verify_status == 'pending'
-          checks += 1
-          if checks > 5
-            return {:result => :failed, :reason => {:type => :timeout, :detail => "Timeout waiting for verify result"}}
-          end
-          sleep 1
-        end
-        case challenge.verify_status
-        when 'valid'
-          # Carry on
-        when 'invalid'
-          return {:result => :failed, :reason => challenge.authorization.http01.error}
-        else
-          return {:result => :failed, :reason => {:type => :unexpected_status, :detail => challenge.verify_status}}
-        end
+        return { :result => :not_due }
       end
 
-      csr = Acme::Client::CertificateRequest.new(:names => [domain])
-      certificate = AcmeManager.client.new_certificate(csr)
+      order = AcmeManager.client.new_order(:identifiers => [domain])
+      authorization = order.authorizations.first
+      challenge = authorization.http
+      challenge.request_validation
+
+      checks = 0
+      until challenge.status != 'pending'
+        checks += 1
+        if checks > 30
+          return { :result => :failed, :reason => { :type => :timeout, :detail => "Timeout waiting for verify result" } }
+        end
+
+        sleep 2
+        challenge.reload
+      end
+
+      unless challenge.status == 'valid'
+        return { :result => :failed, :reason => challenge.error }
+      end
+
+      private_key = OpenSSL::PKey::RSA.new(2048)
+      csr = OpenSSL::X509::Request.new
+      csr.subject = OpenSSL::X509::Name.new([['CN', domain, OpenSSL::ASN1::UTF8STRING]])
+      csr.public_key = private_key.public_key
+      csr.sign(private_key, OpenSSL::Digest::SHA256.new)
+      order.finalize(:csr => csr)
+
       FileUtils.mkdir_p(File.join(AcmeManager.data_path, 'certificates', domain))
-      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'key.pem'), certificate.request.private_key.to_pem)
-      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'cert.pem'), certificate.to_pem)
-      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'chain.pem'), certificate.chain_to_pem)
+      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'key.pem'), private_key.to_pem)
+      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'cert.pem'), order.certificate)
+      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'chain.pem'), order.certificate)
 
-      assembled = certificate.to_pem + certificate.chain_to_pem + certificate.request.private_key.to_pem
+      assembled = order.certificate + private_key.to_pem
       File.write(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'), assembled)
-      return {:result => :issued}
+      { :result => :issued }
     rescue Acme::Client::Error => e
       tries -= 1
       if e.is_a?(Acme::Client::Error::BadNonce) && tries > 0

@@ -1,12 +1,12 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    acme-client (0.5.5)
-      faraday (~> 0.9, >= 0.9.1)
-    faraday (0.9.2)
+    acme-client (2.0.6)
+      faraday (>= 0.17, < 2.0.0)
+    faraday (1.0.1)
       multipart-post (>= 1.2, < 3)
     json (2.0.2)
-    multipart-post (2.0.0)
+    multipart-post (2.1.1)
     puma (3.8.2)
 
 PLATFORMS
@@ -18,4 +18,4 @@ DEPENDENCIES
   puma
 
 BUNDLED WITH
-   1.14.6
+   1.17.2
