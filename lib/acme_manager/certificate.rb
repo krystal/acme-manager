@@ -43,6 +43,7 @@ module AcmeManager
       order = AcmeManager.client.new_order(:identifiers => [domain])
       authorization = order.authorizations.first
       challenge = authorization.http
+      File.write(File.join(AcmeManager.data_path, 'challenges', challenge.token), challenge.file_content)
       challenge.request_validation
 
       checks = 0
