@@ -70,7 +70,6 @@ module AcmeManager
       FileUtils.mkdir_p(File.join(AcmeManager.data_path, 'certificates', domain))
       File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'key.pem'), private_key.to_pem)
       File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'cert.pem'), order.certificate)
-      File.write(File.join(AcmeManager.data_path, 'certificates', domain, 'chain.pem'), order.certificate)
 
       assembled = order.certificate + private_key.to_pem
       File.write(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'), assembled)
