@@ -24,7 +24,7 @@ module AcmeManager
       when /\A\/~acmemanager\/purge\/(.+)/
         if env['HTTP_X_API_KEY'] == AcmeManager.api_key
           domain = $1
-          Certificate.purge(domain)
+          result = Certificate.purge(domain)
           [200, {'Content-Type' => 'tex/plain'}, [result.to_json]]
         else
           [403, {}, ["API key required"]]
