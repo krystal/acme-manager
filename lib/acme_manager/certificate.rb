@@ -37,6 +37,8 @@ module AcmeManager
       FileUtils.rm_rf(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'))
 
       {:result => :purged}
+    rescue StandardError => e
+      {:result => :failed, :reason => {:type => e.class.name, :detail => e.message}}
     end
 
     def self.issue(domain)
