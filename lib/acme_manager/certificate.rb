@@ -1,6 +1,3 @@
-require 'pry'
-require 'pry-remote'
-
 module AcmeManager
   class Certificate
     attr_accessor :name, :certificate
