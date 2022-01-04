@@ -20,18 +20,25 @@ module AcmeManager
       {:name => @name, :not_after => @certificate.not_after.iso8601}.to_json
     end
 
-    def delete!
-      FileUtils.rm_rf(File.join(AcmeManager.data_path, 'certificates', domain))
-      FileUtils.rm_rf(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'))
+    def purge
+      Certificate.purge(@name)
     end
 
     def renew
       status = Certificate.issue(@name)
       if status == :failed && expired?
-        delete!
-        return {:result => :deleted}
+        return purge 
       end
       status
+    end
+
+    def self.purge(domain)
+      FileUtils.rm_rf(File.join(AcmeManager.data_path, 'certificates', domain))
+      FileUtils.rm_rf(File.join(AcmeManager.data_path, 'assembled_certificates', domain + '.pem'))
+
+      {:result => :purged}
+    rescue StandardError => e
+      {:result => :failed, :reason => {:type => e.class.name, :detail => e.message}}
     end
 
     def self.issue(domain)
