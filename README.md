@@ -13,7 +13,7 @@ Requests must be authenticated by passing an API key in the X-API-KEY header.
 
 ### Bulk Certificate Renewals (CRON)
 
-There's cron jobs set in the Load Balancer hosts (under the `haproxy` user) to run renewals every day ot `02:00 AM`, the job looks like this:
+There's cron jobs set in the Load Balancer hosts (under the `haproxy` user) to run renewals daily at `02:00 AM`, the job looks like this:
 ```shell
 0 2    * * * cd /opt/acme-manager; bundle exec ruby bin/renew.rb
 ```
