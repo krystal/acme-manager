@@ -25,10 +25,15 @@ module AcmeManager
     end
 
     def renew
+      unless AcmeManager.can_run_renewals?
+        return {:status => :failed, :reason => {:type => :internal, :detail => "Load Balancer host transitioned"}}
+      end
+
       status = Certificate.issue(@name)
-      if status == :failed && expired?
+      if status[:result] == :failed && expired?
         return purge 
       end
+
       status
     end
 

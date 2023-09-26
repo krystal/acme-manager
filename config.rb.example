@@ -1,6 +1,11 @@
 AcmeManager.directory = 'https://acme-staging-v02.api.letsencrypt.org/directory'
 AcmeManager.email_address = 'domains@example.com'
 AcmeManager.api_key = 'xxxxxxxxxxxxxx'
+AcmeManager.pre_renewal_check = proc {
+  lock_file_path = "/var/run/renewals_cron.lock"
+  node = File.read(lock_file_path).strip rescue nil
+  node == "MASTER"
+}
 AcmeManager.post_commands = [
   'sudo /etc/init.d/haproxy reload'
 ]
