@@ -1,3 +1,4 @@
+require 'logger'
 require 'acme-client'
 require 'fileutils'
 require 'acme_manager/certificate'
@@ -28,6 +29,7 @@ module AcmeManager
     new_issues = false
     self.certificates_due_for_renewal.each do |certificate|
       status = certificate.renew
+      AcmeManager.log_status(status, {:domain => certificate.name})
       new_issues = true if status[:result] == :issued
     end
     new_issues
@@ -90,6 +92,14 @@ module AcmeManager
     @api_key || raise("API Key not set")
   end
 
+  def self.pre_renewal_check=(proc)
+    @pre_renewal_check = proc
+  end
+
+  def self.pre_renewal_check
+    @pre_renewal_check || proc { true }
+  end
+
   def self.post_commands=(post_commands)
     @post_commands = post_commands
   end
@@ -103,6 +113,19 @@ module AcmeManager
       pid = spawn(AcmeManager.post_commands.join(';'))
       Process.detach(pid)
     end
+  end
+
+  def self.can_run_renewals?
+    return AcmeManager.pre_renewal_check.call
+  end
+
+  def self.logger
+    @logger ||= Logger.new(File.join(File.dirname(__FILE__), '..', 'manager.log'))
+  end
+
+  def self.log_status(status, *args)
+    method = status[:result] == :failed ? :error : :info
+    AcmeManager.logger.send(method, {:args => [*args]}.merge(status).to_json)
   end
 
 end

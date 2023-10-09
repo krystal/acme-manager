@@ -1,2 +1,4 @@
 data/**
 config.rb
+manager.log
+.idea
